@@ -142,13 +142,19 @@ class _AddActionButtonState extends ConsumerState<AddActionButton> {
       return;
     }
 
-    final addedCount = await ref.read(remoteAlbumProvider.notifier).addAssets(album.id, [latest.remoteId!]);
+    final result = await ref.read(remoteAlbumProvider.notifier).addAssets(album.id, [latest.remoteId!]);
 
     if (!context.mounted) {
       return;
     }
 
-    if (addedCount == 0) {
+    if (result.failed > 0) {
+      ImmichToast.show(
+        context: context,
+        msg: "Couldn't add to the album. Check your permissions or try again.",
+        toastType: ToastType.error,
+      );
+    } else if (result.added == 0) {
       ImmichToast.show(
         context: context,
         msg: 'add_to_album_bottom_sheet_already_exists'.tr(namedArgs: {'album': album.name}),

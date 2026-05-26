@@ -51,12 +51,12 @@ class _RemoteAlbumPageState extends ConsumerState<RemoteAlbumPage> {
       return;
     }
 
-    final added = await notifier.addAssetsToAlbum(_album.id, newAssets);
+    final result = await notifier.addAssetsToAlbum(_album.id, newAssets);
 
-    if (added > 0 && context.mounted) {
+    if (result.added > 0 && context.mounted) {
       ImmichToast.show(
         context: context,
-        msg: "assets_added_to_album_count".t(context: context, args: {'count': added.toString()}),
+        msg: "assets_added_to_album_count".t(context: context, args: {'count': result.added.toString()}),
         toastType: ToastType.success,
       );
     }

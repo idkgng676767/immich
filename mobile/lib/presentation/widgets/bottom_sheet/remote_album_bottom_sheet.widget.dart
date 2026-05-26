@@ -62,11 +62,11 @@ class _RemoteAlbumBottomSheetState extends ConsumerState<RemoteAlbumBottomSheet>
         return;
       }
 
-      final addedCount = await ref
+      final result = await ref
           .read(remoteAlbumProvider.notifier)
           .addAssets(album.id, selectedAssets.map((e) => (e as RemoteAsset).id).toList());
 
-      if (addedCount != selectedAssets.length) {
+      if (result.added != selectedAssets.length) {
         ImmichToast.show(
           context: context,
           msg: 'add_to_album_bottom_sheet_already_exists'.t(context: context, args: {"album": album.name}),

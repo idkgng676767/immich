@@ -39,7 +39,7 @@ class FavoriteBottomSheet extends ConsumerWidget {
       }
 
       final remoteAssets = selectedAssets.whereType<RemoteAsset>();
-      final addedCount = await ref
+        final result = await ref
           .read(remoteAlbumProvider.notifier)
           .addAssets(album.id, remoteAssets.map((e) => e.id).toList());
 
@@ -50,7 +50,7 @@ class FavoriteBottomSheet extends ConsumerWidget {
         );
       }
 
-      if (addedCount != remoteAssets.length) {
+      if (result.added != remoteAssets.length) {
         ImmichToast.show(
           context: context,
           msg: 'add_to_album_bottom_sheet_already_exists'.t(args: {"album": album.name}),

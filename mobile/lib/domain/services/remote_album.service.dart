@@ -175,32 +175,34 @@ class RemoteAlbumService {
     return _repository.getAssets(albumId);
   }
 
-  Future<int> addAssets({required String albumId, required List<String> assetIds}) async {
-    final album = await _albumApiRepository.addAssets(albumId, assetIds);
+  Future<({int added, int failed})> addAssets({
+    required String albumId,
+    required List<String> assetIds,
+  }) async {
+    final result = await _albumApiRepository.addAssets(albumId, assetIds);
 
-    await _repository.addAssets(albumId, album.added);
+    await _repository.addAssets(albumId, result.added);
 
-    return album.added.length;
+    return (added: result.added.length, failed: result.failed.length);
   }
 
-  /// !TODO The name here is not clear as we have addAssets method above,
-  /// which is only add remote assets to album, for the next PR, we will allow
-  /// adding local assets from album from the timeline as well with this flow.
-  /// So saving that for the next refactor
-  Future<int> addAssetsToAlbum({
+  Future<({int added, int failed})> addAssetsToAlbum({
     required String albumId,
     required UserDto uploader,
     required AlbumAssetCandidates candidates,
     UploadCallbacks uploadCallbacks = const UploadCallbacks(),
   }) async {
-    int addedCount = 0;
+    var addedCount = 0;
+    var failedCount = 0;
     if (candidates.remoteAssetIds.isNotEmpty) {
-      addedCount += await addAssets(albumId: albumId, assetIds: candidates.remoteAssetIds);
+      final result = await addAssets(albumId: albumId, assetIds: candidates.remoteAssetIds);
+      addedCount += result.added;
+      failedCount += result.failed;
     }
     if (candidates.localAssetsToUpload.isNotEmpty) {
       addedCount += await _uploadAndAddLocals(albumId, uploader, candidates.localAssetsToUpload, uploadCallbacks);
     }
-    return addedCount;
+    return (added: addedCount, failed: failedCount);
   }
 
   /// Creates an album, seeding it with already-remote asset IDs, then uploads

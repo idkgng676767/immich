@@ -70,7 +70,7 @@ class _GeneralBottomSheetState extends ConsumerState<GeneralBottomSheet> {
       }
 
       final remoteAssets = selectedAssets.whereType<RemoteAsset>();
-      final addedCount = await ref
+        final result = await ref
           .read(remoteAlbumProvider.notifier)
           .addAssets(album.id, remoteAssets.map((e) => e.id).toList());
 
@@ -81,7 +81,13 @@ class _GeneralBottomSheetState extends ConsumerState<GeneralBottomSheet> {
         );
       }
 
-      if (addedCount != remoteAssets.length) {
+      if (result.failed > 0) {
+        ImmichToast.show(
+          context: context,
+          msg: "Couldn't add to the album. Check your permissions or try again.",
+          toastType: ToastType.error,
+        );
+      } else if (result.added != remoteAssets.length) {
         ImmichToast.show(
           context: context,
           msg: 'add_to_album_bottom_sheet_already_exists'.tr(namedArgs: {"album": album.name}),

@@ -199,19 +199,19 @@ class RemoteAlbumNotifier extends Notifier<RemoteAlbumState> {
     return _remoteAlbumService.getAssets(albumId);
   }
 
-  Future<int> addAssets(String albumId, List<String> assetIds) async {
-    final added = await _remoteAlbumService.addAssets(albumId: albumId, assetIds: assetIds);
-    if (added > 0) {
+  Future<({int added, int failed})> addAssets(String albumId, List<String> assetIds) async {
+    final result = await _remoteAlbumService.addAssets(albumId: albumId, assetIds: assetIds);
+    if (result.added > 0) {
       await _refreshAlbumInState(albumId);
     }
-    return added;
+    return result;
   }
 
   /// Adds a heterogeneous asset selection to an album. Already-remote assets
   /// are linked immediately; local-only assets are queued in
   /// [pendingAlbumUploadsProvider] (so the album page can show them with
   /// progress indicators), uploaded, and linked one-by-one as each finishes.
-  Future<int> addAssetsToAlbum(String albumId, Iterable<BaseAsset> assets) async {
+  Future<({int added, int failed})> addAssetsToAlbum(String albumId, Iterable<BaseAsset> assets) async {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       throw Exception('User not logged in');
@@ -222,7 +222,7 @@ class RemoteAlbumNotifier extends Notifier<RemoteAlbumState> {
     pendingNotifier.enqueue(candidates.localAssetsToUpload);
 
     try {
-      final added = await _remoteAlbumService.addAssetsToAlbum(
+      final result = await _remoteAlbumService.addAssetsToAlbum(
         albumId: albumId,
         uploader: currentUser,
         candidates: candidates,
@@ -235,10 +235,10 @@ class RemoteAlbumNotifier extends Notifier<RemoteAlbumState> {
           onError: (localAssetId, _) => pendingNotifier.markFailed(localAssetId),
         ),
       );
-      if (added > 0) {
+      if (result.added > 0) {
         await _refreshAlbumInState(albumId);
       }
-      return added;
+      return result;
     } catch (error, stack) {
       if (candidates.localAssetsToUpload.isNotEmpty) {
         pendingNotifier.markAllFailed();
